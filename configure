@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 #configure script adapted from Aquarius software (https://github.cxxom/devinamatthews/aquarius)
 
-
 function usage
 {
   echo -e 'Usage: configure [options]'
@@ -397,6 +396,10 @@ function realcompiler
             echo 'Using Intel compilers.'
             compiler=intel
             ;;
+        *NVIDIA*)
+            echo 'Using NVHPC compilers.'
+            compiler=nvhpc
+            ;;
         *Portland*)
             echo 'Portland Group compilers are not supported. Specify MPI compiler via CXX=...'
             exit 1
@@ -430,6 +433,14 @@ function defaultflags
     # Set default compiler flags
     #
     case $compiler in
+        nvhpc)
+            if [ "x$AR"        = "x" ]; then AR='ar'; fi
+            if [ "x$CXXFLAGS"  = "x" ]; then CXXFLAGS='-mp -O3'; fi
+            if [ "x$NVCCFLAGS" = "x" ]; then NVCCLAGS=''; fi
+            if [ "x$DEFS"      = "x" ]; then DEFS='-D_POSIX_C_SOURCE=200112L -D__STDC_LIMIT_MACROS'; fi
+            if [ "x$WARNFLAGS"      = "x" ]; then WARNFLAGS='-Minform=warn'; fi
+            PASS_TO_LINKER='-Wl,'
+            ;;
         intel)
             if [ "x$AR"        = "x" ]; then AR='xiar'; fi
             if [ "x$CXXFLAGS"  = "x" ]; then CXXFLAGS='-qopenmp -O3 -ipo'; fi
@@ -459,6 +470,9 @@ function defaultflags
     esac
 
     case $compiler in
+        nvhpc)
+            if [ "x$SEQCXX"    = "x" ]; then SEQCXX='nvc++'; fi
+            ;;
         intel)
             if [ "x$SEQCXX"    = "x" ]; then SEQCXX='icpc'; fi
             ;;
